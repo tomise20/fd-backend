@@ -27,6 +27,7 @@ Route.post("/login", "UserController.login").middleware("guest");
 
 Route.group(() => {
   Route.post("/logout", "UserController.logout");
+  Route.post("/store-address", "UserController.storeAddress");
 }).middleware(["auth"]);
 
 Route.get("/register", async () => {
