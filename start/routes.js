@@ -26,9 +26,18 @@ Route.get("/home", "PageController.index");
 Route.post("/login", "UserController.login").middleware("guest");
 
 Route.group(() => {
+  Route.get("/get-user", "UserController.getUser");
   Route.post("/logout", "UserController.logout");
   Route.post("/store-address", "UserController.storeAddress");
-}).middleware(["auth"]);
+  Route.post("/set-active-address", "UserController.setActiveAddress");
+  Route.delete("/:id/delete-address", "UserController.deleteAddress");
+})
+  .middleware(["auth"])
+  .prefix("user");
+
+Route.group(() => {
+  Route.post("/store", "ProductController.storeOrder");
+}).prefix("/order");
 
 Route.get("/register", async () => {
   const count = User.all();
