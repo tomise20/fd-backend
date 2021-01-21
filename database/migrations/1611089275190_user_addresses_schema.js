@@ -14,6 +14,8 @@ class UserAddressesSchema extends Schema {
       table.string("city", 100);
       table.string("country");
       table.integer("user_id");
+      table.string("phone");
+      table.boolean("is_active").defaultTo(0);
     });
   }
 
