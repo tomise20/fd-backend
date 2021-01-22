@@ -13,7 +13,7 @@ class OrdersSchema extends Schema {
       table.string("note").nullable();
       table.string("coupon").nullable();
       table.decimal("price");
-      table.string("paymnet");
+      table.string("payment");
       table.integer("user_id").nullable();
       table.timestamps();
     });
