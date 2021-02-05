@@ -1,5 +1,7 @@
 "use strict";
 
+const { get } = require("@adonisjs/framework/src/Route/Manager");
+
 /*
 |--------------------------------------------------------------------------
 | Routes
@@ -24,9 +26,11 @@ Route.get("/", () => {
 
 Route.get("/home", "PageController.index");
 Route.post("/login", "UserController.login").middleware("guest");
+Route.post("/register", "UserController.register");
 
 Route.group(() => {
   Route.get("/get-user", "UserController.getUser");
+  Route.get("/refresh-orders", "UserController.refreshOrders");
   Route.post("/logout", "UserController.logout");
   Route.post("/store-address", "UserController.storeAddress");
   Route.post("/set-active-address", "UserController.setActiveAddress");
@@ -39,17 +43,8 @@ Route.group(() => {
   Route.post("/store", "ProductController.storeOrder");
 }).prefix("/order");
 
-Route.get("/register", async () => {
-  const count = User.all();
-
-  if (!count) {
-    const user = new User();
-    user.username = "admin";
-    user.password = "admin";
-    user.email = "admin@admin.com";
-    await user.save();
-    return "Successfully created admin user.";
-  } else {
-    return "The admin user is already exists.";
-  }
-});
+Route.group(() => {
+  Route.get("/", "PageController.shops");
+  Route.get("/popular-products", "PageController.popularProducts");
+  Route.get("/:id/products", "ProductController.getShopWithProducts");
+}).prefix("shops");

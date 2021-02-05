@@ -10,6 +10,7 @@ class UserController {
       if (await auth.attempt(email, password)) {
         let user = await User.query()
           .with("addresses")
+          .with("orders")
           .where("email", email)
           .first();
         let accesToken = await auth.generate(user);
@@ -27,7 +28,11 @@ class UserController {
   async getUser({ auth, request, response }) {
     try {
       const user = await auth.getUser();
-      return User.query().with("addresses").where("id", user.id).first();
+      return User.query()
+        .with("addresses")
+        .with("orders")
+        .where("id", user.id)
+        .first();
     } catch (error) {
       response.send("You are not logged in");
     }
@@ -39,9 +44,9 @@ class UserController {
       .with("addresses")
       .where("id", user_id)
       .first();
-    const addresses_count = await user.addresses().count();
-    const count = await addresses_count[0]["count(*)"];
-    const is_active = count == 0 ? 1 : request.input("is_active");
+    const addresses_count = await user.addresses().fetch();
+    const is_active =
+      addresses_count.rows.length == 0 ? 1 : request.input("is_active");
 
     try {
       let address = new UserAddress();
@@ -82,6 +87,40 @@ class UserController {
     await UserAddress.query().where("id", address_id).delete();
 
     return response.status(200).json({ message: "OK" });
+  }
+
+  async register({ request, response }) {
+    const checkEmail = await User.query()
+      .where("email", request.input("email"))
+      .first();
+
+    if (checkEmail !== null) {
+      return response.status(500).send("This e-mail has already taken!");
+    }
+
+    try {
+      const user = new User();
+      user.username = request.input("username");
+      user.password = request.input("password");
+      user.email = request.input("email");
+      user.name = request.input("name");
+      await user.save();
+
+      return response.status(200).json({ message: "OK" });
+    } catch (error) {
+      return response.status(500).json({ message: error.message });
+    }
+  }
+
+  async refreshOrders({ auth, request, response }) {
+    try {
+      const user = await auth.getUser();
+      const orders = await user.orders().fetch();
+
+      return response.status(200).json(orders);
+    } catch (error) {
+      response.send("You are not logged in");
+    }
   }
 }
 
