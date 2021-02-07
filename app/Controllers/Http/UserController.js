@@ -61,9 +61,32 @@ class UserController {
       address.is_active = is_active;
       await address.save();
 
-      return response.status(200).json({ address });
+      if (addresses_count.rows.length > 0 && is_active == 1) {
+        await user
+          .addresses()
+          .where("id", "<>", address.id)
+          .update({ is_active: 0 });
+      }
+
+      const addresses = await user.addresses().fetch();
+
+      return response.status(200).json(addresses);
     } catch (error) {
       return response.status(500).send({ message: error.message });
+    }
+  }
+
+  async updateAddress({ auth, request, response }) {
+    console.log(request.all());
+    try {
+      const user = await auth.getUser();
+      const address = await user
+        .addresses()
+        .where("id", request.input("id"))
+        .update(request.all());
+      return response.status(200).json("OK");
+    } catch (error) {
+      response.status(500).send("You are not logged in");
     }
   }
 
@@ -82,11 +105,23 @@ class UserController {
     return response.status(200).json({ addresses });
   }
 
-  async deleteAddress({ params, request, response }) {
+  async deleteAddress({ params, auth, request, response }) {
     const address_id = params.id;
+    const address = await UserAddress.query().where("id", address_id).first();
+    const is_active = address.is_active;
     await UserAddress.query().where("id", address_id).delete();
 
-    return response.status(200).json({ message: "OK" });
+    try {
+      const user = await auth.getUser();
+      if (is_active == 1) {
+        await user.addresses().limit(1).update({ is_active: 1 });
+      }
+      const addresses = await user.addresses().fetch();
+      return response.status(200).json(addresses);
+    } catch (error) {
+      console.log(error.message);
+      response.status(500).send("You are not logged in");
+    }
   }
 
   async register({ request, response }) {
@@ -119,6 +154,7 @@ class UserController {
 
       return response.status(200).json(orders);
     } catch (error) {
+      console.log(error.message);
       response.send("You are not logged in");
     }
   }
