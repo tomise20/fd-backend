@@ -19,9 +19,21 @@ const { get } = require("@adonisjs/framework/src/Route/Manager");
 const Route = use("Route");
 const User = use("App/Models/User");
 const Database = use("Database");
+const Geoip = use("geoip-lite");
+const PublicIp = require("public-ip");
 
 Route.get("/", () => {
   return "FD Backend from Adonis.js";
+});
+
+Route.get("/get-iplocation", async ({ request, response }) => {
+  try {
+    const ip = await PublicIp.v4();
+    const geo = Geoip.lookup(ip);
+    return response.status(200).json(geo.city);
+  } catch (error) {
+    return response.status(500).json(error.message);
+  }
 });
 
 Route.get("/home", "PageController.index");
@@ -33,6 +45,7 @@ Route.group(() => {
   Route.get("/refresh-orders", "UserController.refreshOrders");
   Route.post("/logout", "UserController.logout");
   Route.post("/store-address", "UserController.storeAddress");
+  Route.put("/update-address", "UserController.updateAddress");
   Route.post("/set-active-address", "UserController.setActiveAddress");
   Route.delete("/:id/delete-address", "UserController.deleteAddress");
 })
