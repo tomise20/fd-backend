@@ -1,10 +1,12 @@
 const Server = use("Server");
+
 const io = use("socket.io")(Server.getInstance(), {
   cors: {
     origin: [
       "http://localhost:3000",
       "http://localhost:3006",
       "http://food.tomise20.hu",
+      "http://admin.tomise20.hu",
     ],
     methods: ["GET", "POST"],
     credentials: true,
